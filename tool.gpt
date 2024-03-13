@@ -1,0 +1,6 @@
+description: Uses the GitHub API to search for issues and pull requests.
+
+args: query: The query to search for. Supports all of the standard options within GitHub search queries, such as `repo:`, `user:`, `author:`, and `merged:`.
+args: page: The page number to retrieve. Default is 1.
+
+#!${GPTSCRIPT_TOOL_DIR}/bin/gptscript-go-tool "${GPTSCRIPT_INPUT}"
