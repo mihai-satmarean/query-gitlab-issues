@@ -63,7 +63,10 @@ func search(ctx context.Context, gh *github.Client, a args) ([]*github.Issue, er
 	}
 
 	issues, _, err := gh.Search.Issues(ctx, a.Query, searchOpts)
-	return issues.Issues, err
+	if issues != nil {
+		return issues.Issues, err
+	}
+	return nil, err
 }
 
 func printIssues(issues []*github.Issue) {
