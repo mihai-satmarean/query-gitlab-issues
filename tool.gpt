@@ -1,4 +1,4 @@
-description: Uses the GitHub API to search for issues and pull requests.
+description: Uses the GitHub API to search for issues and pull requests. Queries for issues must include "is:issue" and queries for pull requests must include "is:pr".
 
 args: query: The query to search for. Supports all of the standard options within GitHub search queries, such as `repo:`, `user:`, `author:`, and `merged:`.
 args: page: The page number to retrieve. Default is 1.
