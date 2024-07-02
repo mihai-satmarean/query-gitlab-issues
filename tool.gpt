@@ -1,6 +1,8 @@
-description: Uses the GitHub API to search for issues and pull requests. Queries for issues must include "is:issue" and queries for pull requests must include "is:pr".
+Name: query-github-issues
+Description: Uses the GitHub API to search for issues and pull requests. Queries for issues must include "is:issue" and queries for pull requests must include "is:pr".
+Credential: github.com/gptscript-ai/credential as githubToken with "Please provide your GitHub personal access token" as message and token as field and GPTSCRIPT_GITHUB_TOKEN as env
 
-args: query: The query to search for. Supports all of the standard options within GitHub search queries, such as `repo:`, `user:`, `author:`, and `merged:`.
-args: page: The page number to retrieve. Default is 1.
+Param: query: The query to search for. Supports all of the standard options within GitHub search queries, such as `repo:`, `user:`, `author:`, and `merged:`.
+Param: page: The page number to retrieve. Default is 1.
 
 #!${GPTSCRIPT_TOOL_DIR}/bin/gptscript-go-tool "${GPTSCRIPT_INPUT}"
