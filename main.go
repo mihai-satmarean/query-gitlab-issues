@@ -9,8 +9,7 @@ import (
 	"strconv"
 	"syscall"
 
-	"github.com/acorn-io/z"
-	"github.com/google/go-github/v60/github"
+	"github.com/xanzy/go-gitlab"
 	"github.com/sirupsen/logrus"
 )
 
@@ -38,12 +37,18 @@ func main() {
 		a.Page = "1"
 	}
 
-	gh := github.NewClient(nil)
-	if os.Getenv("GPTSCRIPT_GITHUB_TOKEN") != "" {
-		gh = gh.WithAuthToken(os.Getenv("GPTSCRIPT_GITHUB_TOKEN"))
+	token := os.Getenv("GPTSCRIPT_GITLAB_TOKEN")
+	if token == "" {
+		logrus.Errorf("GitLab token is required")
+		os.Exit(1)
 	}
 
-	issues, err := search(ctx, gh, a)
+	git, err := gitlab.NewClient(token)
+	if err != nil {
+		logrus.Fatalf("Failed to create client: %v", err)
+	}
+
+	issues, err := search(ctx, git, a)
 	if err != nil {
 		logrus.Errorf("error listing issues: %v", err)
 		os.Exit(1)
@@ -52,24 +57,26 @@ func main() {
 	printIssues(issues)
 }
 
-func search(ctx context.Context, gh *github.Client, a args) ([]*github.Issue, error) {
+func search(ctx context.Context, git *gitlab.Client, a args) ([]*gitlab.Issue, error) {
 	page, err := strconv.Atoi(a.Page)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing page number: %v", err)
 	}
 
-	searchOpts := &github.SearchOptions{
-		ListOptions: github.ListOptions{Page: page},
+	searchOpts := &gitlab.ListProjectIssuesOptions{
+		ListOptions: gitlab.ListOptions{Page: page, PerPage: 20},
+		Search:      &a.Query,
 	}
 
-	issues, _, err := gh.Search.Issues(ctx, a.Query, searchOpts)
-	if issues != nil {
-		return issues.Issues, err
+	// Replace PROJECT_ID with your project ID
+	issues, _, err := git.Issues.ListProjectIssues("PROJECT_ID", searchOpts)
+	if err != nil {
+		return nil, err
 	}
-	return nil, err
+	return issues, nil
 }
 
-func printIssues(issues []*github.Issue) {
+func printIssues(issues []*gitlab.Issue) {
 	if len(issues) == 0 {
 		fmt.Println("No issues found")
 		return
@@ -80,17 +87,10 @@ func printIssues(issues []*github.Issue) {
 	}
 }
 
-func printIssue(issue *github.Issue) {
-	if issue.Title == nil {
-		issue.Title = z.Pointer("(no title)")
-	}
-	fmt.Printf("Title: %s\n", *issue.Title)
-
-	if issue.HTMLURL != nil {
-		fmt.Printf("URL: %s\n", *issue.HTMLURL)
-	}
-
-	fmt.Printf("Description: %s\n\n---\n\n", trunc(z.Dereference(issue.Body)))
+func printIssue(issue *gitlab.Issue) {
+	fmt.Printf("Title: %s\n", issue.Title)
+	fmt.Printf("URL: %s\n", issue.WebURL)
+	fmt.Printf("Description: %s\n\n---\n\n", trunc(issue.Description))
 }
 
 func trunc(s string) string {
